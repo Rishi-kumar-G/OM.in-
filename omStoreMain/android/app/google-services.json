@@ -1,0 +1,105 @@
+{
+  "project_info": {
+    "project_number": "260065831608",
+    "project_id": "omstore-ed85b",
+    "storage_bucket": "omstore-ed85b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260065831608:android:63083db2e0e182a3ae624d",
+        "android_client_info": {
+          "package_name": "com.omstoremain"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFBInT79_Po3_7S0GVCydRhLkWN80SVeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260065831608:android:2fca8441cabfd370ae624d",
+        "android_client_info": {
+          "package_name": "com.omstoremain07"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFBInT79_Po3_7S0GVCydRhLkWN80SVeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260065831608:android:bab470d006291ed4ae624d",
+        "android_client_info": {
+          "package_name": "com.omstoremain2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFBInT79_Po3_7S0GVCydRhLkWN80SVeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260065831608:android:460fe6c8d9b6456bae624d",
+        "android_client_info": {
+          "package_name": "com.omstoremain07"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFBInT79_Po3_7S0GVCydRhLkWN80SVeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:260065831608:android:7aee0c8dbc0cfbbcae624d",
+        "android_client_info": {
+          "package_name": "com.predator.omstore"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBFBInT79_Po3_7S0GVCydRhLkWN80SVeA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

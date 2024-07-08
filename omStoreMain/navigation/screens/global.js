@@ -1,0 +1,1 @@
+global.ToatlAmount = 0;
