@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Text, View,StyleSheet, ImageBackground, FlatList, TextInput, Image, TouchableOpacity, ToastAndroid, ScrollView, BackHandler, LogBox} from 'react-native';
+import {Text, View,StyleSheet, ImageBackground, FlatList, TextInput, Image, TouchableOpacity, ToastAndroid, ScrollView, BackHandler, LogBox, Alert} from 'react-native';
 // import  {firebase} from '@react-native-firebase/auth';
 import firestore from '@react-native-firebase/firestore';
 import ItemCard from './ItemCard';
@@ -7,102 +7,105 @@ import Spinner from 'react-native-loading-spinner-overlay';
 
 import ItemDaily from './ItemDaily';
 
+const Category_data = [
+  { category: 'Technical\nCategory', items: require('../../assets/all.png') ,search:''},
+
+  { category: 'Electrical \n& Spare', items: require('../../assets/electrical.jpeg'),search:'Electrical' },
+  { category: 'Electronics \n Home Appliance', items: require('../../assets/electronics.jpeg'),search:'Electronics' },
+  { category: 'Hardware \n Products', items: require('../../assets/nutbolt.jpeg'),search:'Hardware'},
+  { category: 'Tap Fittings \n& Sanitery', items: require('../../assets/tape.jpeg'),search:'Tape Fitting'},
+  { category: 'Tools & \nPower Tools', items: require('../../assets/hardware.jpeg'),search:'Tools And PowerTools'},
+  { category: 'Washing\nMachine Spare', items: require('../../assets/washing.jpg'),search:'Washing Machine Spare'},
+  { category: 'Mixi\nSpare', items: require('../../assets/mixi.jpg'),search:'Mixi Spare'},  
+  { category: 'Provision &\nBakery', items: require('../../assets/bakery.jpeg') ,search:'Bakery'},
+  { category: 'Garments', items: require('../../assets/garments.jpeg'),search:'Garments'},
+  { category: 'Kirana &\n Dry Fruits', items: require('../../assets/kirana.jpeg'),search:'Kirana'},
+  { category: 'Fresh Vegi\n&  Fruits', items: require('../../assets/vegitables.jpeg') ,search:'Veg Fresh & Fruits'},
+  { category: 'Cosmatics', items: require('../../assets/cosmatics.jpeg'),search:'Cosmatics'},
+  { category: 'Sweets \n& Namkeen', items: require('../../assets/sweets.jpeg'),search:'Sweets And Namkeen' },
+  { category: 'Food Deleviry', items: require('../../assets/foodDeliviry.png'),search:'Food Delivery' },
+  { category: 'Pooja &\nAggarbatti',items: require('../../assets/pooja.jpeg'), search: 'Pooja' },
+  { category: 'Stationary',items: require('../../assets/stationary.jpeg'), search: 'Stationary' },
+  { category: 'Games \n& Sports',items: require('../../assets/sports.jpeg'), search: 'Games' },
+  { category: 'General\n& Plastic',items: require('../../assets/plastic.jpeg'), search: 'Plastic Product' },
+  { category: 'Shoes &\nSleepers',items: require('../../assets/shoes.jpeg'), search: 'Shoes And Slippers' },
+  { category: 'Home Care',items: require('../../assets/HomeCare.jpeg'), search: 'Home Care Products' },
+  { category: 'Mobile &\nLaptop Accessories',items: require('../../assets/mobile.jpeg'), search: 'Mobile Accessories' },
+  { category: 'Furniture',items: require('../../assets/furniture.jpeg'), search: 'Furniture' },
+  { category: 'Gifts',items: require('../../assets/gifts.jpeg'), search: 'Gifts' },
+  { category: 'Service Providers', items: require('../../assets/service.png') ,search:'Servie Providers'},
+  { category: 'Om Carrier', items: require('../../assets/carrier.jpeg') ,search:'Om Carrior'},
+  // Add more categories as needed
+];
+
+
 export default function Home({navigation, route}) {
   const [data, setData] = useState([]);
+  const [filterData, setFilterData] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [dailyData , setDailyData] = useState([]);
   const [searchQuerry, setSearchQuerry] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [ImagesData, setImagesData] = useState([]);
   const [isLoadingImages, setIsLoadingImages] = useState(true);
 
-  // const [ImagesData, setImagesData] = useState([{url : 'https://firebasestorage.googleapis.com/v0/b/omstore-ed85b.appspot.com/o/adphoto%2F1?alt=media&token=334bba13-23bd-41e6-85f7-8e34a4070206'}
-  //                                               ,{url : 'https://firebasestorage.googleapis.com/v0/b/omstore-ed85b.appspot.com/o/adphoto%2F1?alt=media&token=334bba13-23bd-41e6-85f7-8e34a4070206'}
-  //                                             ,{url : 'https://firebasestorage.googleapis.com/v0/b/omstore-ed85b.appspot.com/o/adphoto%2F1?alt=media&token=334bba13-23bd-41e6-85f7-8e34a4070206'}
-  //                                           ,{url : 'https://firebasestorage.googleapis.com/v0/b/omstore-ed85b.appspot.com/o/adphoto%2F1?alt=media&token=334bba13-23bd-41e6-85f7-8e34a4070206'}
-  //                                         ,{url : 'https://firebasestorage.googleapis.com/v0/b/omstore-ed85b.appspot.com/o/adphoto%2F1?alt=media&token=334bba13-23bd-41e6-85f7-8e34a4070206'}]);
-  const Category_data = [
-    { category: 'Category', items: require('../../assets/all.png') ,search:''},
-
-    { category: 'Electrical', items: require('../../assets/electrical.jpeg'),search:'Electrical' },
-    { category: 'Electronics', items: require('../../assets/electronics.jpeg'),search:'Electronics' },
-    { category: 'Hardware', items: require('../../assets/nutbolt.jpeg'),search:'Hardware'},
-    { category: 'Tape Fittings', items: require('../../assets/tape.jpeg'),search:'Tape Fitting'},
-    { category: 'Tools', items: require('../../assets/hardware.jpeg'),search:'Tools And PowerTools'},
-    { category: 'Washing\nMachine Spare', items: require('../../assets/washing.jpg'),search:'Washing Machine Spare'},
-    { category: 'Mixi\nSpare', items: require('../../assets/mixi.jpg'),search:'Mixi Spare'},
-    { category: 'General', items: require('../../assets/generalStore.jpeg') ,search:'General Store'},
-    { category: 'Garments', items: require('../../assets/garments.jpeg'),search:'Garments'},
-    { category: 'Kirana', items: require('../../assets/kirana.jpeg'),search:'Kirana'},
-    { category: 'Fresh Vegi', items: require('../../assets/vegitables.jpeg') ,search:'Veg Fresh & Fruits'},
-    { category: 'Cosmatics', items: require('../../assets/cosmatics.jpeg'),search:'Cosmatics'},
-    { category: 'Sweets', items: require('../../assets/sweets.jpeg'),search:'Sweets And Namkeen' },
-    { category: 'Food Deleviry', items: require('../../assets/foodDeliviry.png'),search:'Food Delivery' },
-    
-    { category: 'Pooja',items: require('../../assets/pooja.jpeg'), search: 'Pooja' },
-    { category: 'Stationary',items: require('../../assets/stationary.jpeg'), search: 'Stationary' },
-    { category: 'Games',items: require('../../assets/games.jpeg'), search: 'Games' },
-    { category: 'Plastic',items: require('../../assets/plastic.jpeg'), search: 'Plastic Product' },
-    { category: 'Shoes',items: require('../../assets/shoes.jpeg'), search: 'Shoes And Slippers' },
-    { category: 'Home Care',items: require('../../assets/HomeCare.jpeg'), search: 'Home Care Products' },
-    { category: 'Accessories',items: require('../../assets/mobile.jpeg'), search: 'Mobile Accessories' },
-    { category: 'Furniture',items: require('../../assets/furniture.jpeg'), search: 'Furniture' },
-    { category: 'Gifts',items: require('../../assets/gifts.jpeg'), search: 'Gifts' },
-    { category: 'Service', items: require('../../assets/service.png') ,search:'Servie Providers'},
-    { category: 'Om Carrier', items: require('../../assets/carrier.jpeg') ,search:'Om Carrior'},
-
-    // Add more categories as needed
-  ];
-
-  // Category_data.push({ category: 'All', items: require('../../assets/all.png') ,search:''});
-
-  // React.useEffect(
-  //   () =>
-  //     navigation.addListener('beforeRemove', (e) => {
-
-  //       if(searchQuerry != ""){
-  //       // BackHandler.exitApp()
-  //       navigation.exitApp()
-          
-  //       }
-  //       else{
-          
-  //       searchProducts('');
-  //       setSearchQuerry("")
-  //         }
-
-  //     }),
-  //   [navigation]
-  // );
-
 
   useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        // Check if you want to handle back button press for this screen
-       BackHandler.exitApp();
-      
-        return true; // Prevent default navigation handling
+        // showExitConfirmation();
+        setSearchQuerry("");
+  
+        return true; 
       }
     );
 
     return () => backHandlerSubscription.remove();
   }, [navigation]);
 
+  const showExitConfirmation = () => {
+    Alert.alert(
+      'Exit App',
+      'Are you sure you want to exit?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Exit',
+          onPress: () => BackHandler.exitApp(),
+        },
+      ]
+    );
+  };
+
+
+  const showAlert = (title, message) => {
+    Alert.alert(
+      title,
+      message,
+       [{ text: 'OK' }],
+      { cancelable: true },
+    );
+  };
+
+
   const styles = StyleSheet.create({
     container: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'space-evenly',
       alignItems: 'center',
-      paddingHorizontal: 30,
-      padding:20
+      padding:1
     },
     imageContainer: {
       alignItems: 'center',
+      margin:10,
     },
     image: {
-      width: 20,
-      height: 20,
+      width: 15,
+      height: 15,
 
     },
     text: {
@@ -112,26 +115,6 @@ export default function Home({navigation, route}) {
     },
   });
   
-
-  // useEffect(() => {
-  //   const backHandlerSubscription = BackHandler.addEventListener('hardwareBackPress', () => {
-  //     // Handle back button press here
-  //     if(searchQuerry!=""){
-      
-  //     setSearchQuerry("")
-  //     searchProducts(searchQuerry)
-
-  //     }else{
-
-  //       BackHandler.exitApp();
-  //       return true;
-
-  //     }
-  //   });
-
-  //   return () => backHandlerSubscription.remove();
-  // }, []);
-
 
 
 
@@ -150,7 +133,7 @@ export default function Home({navigation, route}) {
 
     const unsubscribe = collectionRef.onSnapshot(snapshot => {
       const items = snapshot.docs
-    .filter(doc => filter.includes(doc.data().productCatagory)) // Filter based on productCatagory
+     // Filter based on productCatagory
     .map(doc => ({
       productName: doc.data().productName,
       productDescription: doc.data().productDescription,
@@ -169,10 +152,12 @@ export default function Home({navigation, route}) {
       productForDelivery: doc.data().forDelivery,
       productStatus: doc.data().productStatus
     }));
+
+    const homeData = items.filter(doc => filter.includes(doc.productCatagory));
       
 
-      setData(items);
-
+      setAllProducts(items);
+      setData(homeData);
 
       
     });
@@ -267,7 +252,7 @@ export default function Home({navigation, route}) {
 
 
   async function searchProducts(query) {
-    // setData([]);
+
     setIsLoading(true);
     
     query = query.toLowerCase();
@@ -275,66 +260,27 @@ export default function Home({navigation, route}) {
 
     
     if(query != ""){
-    const snapshot = await collectionRef
-      .where('search', '>=', (query))
-      .where('search', '<=', (query) + '\uf8ff')
-      .get();
-    const items = snapshot.docs.map(doc => ({
-      productName: doc.data().productName,
-      productDescription: doc.data().productDescription,
-      productPrice: doc.data().productPrice,
-      productDiscount: doc.data().productDiscount,
-      productImageUrl: doc.data().productImageUrl,
-      productID: doc.data().productID,
-      productSelling: doc.data().productSelling,
-      productCode: doc.data().productCode,
-      productGST: doc.data().productGST,
-      productSeller: doc.data().productSeller,
-      ListImageUrl: doc.data().productListImageUrl,
-      productCatagory: doc.data().productCatagory,
-      productSubCatagory: doc.data().productSubCatagory,
-      productNameHindi: doc.data().productNameHindi,
-      productForDelivery: doc.data().forDelivery,
-      productStatus: doc.data().productStatus
 
 
-    }));
-    // setData([]);
-    // console.log(searchQuerry+" "+items[0].productName)
-    // // setData([]); 
-    // console.log(data[0].productName);
-    setData(items);
+    const filtered = allProducts.filter(item =>{
+      
+      var lowerProductName = item.productName.toLowerCase();
+      lowerProductName = lowerProductName.replace(/ /g,'');
+      var productNameMatch = lowerProductName.includes(query);
+      return productNameMatch;
+
+    })
+
+    setFilterData(filtered);
+
+    setData(filtered);
     setIsLoading(false);
 
   }
   else{
 
-    const unsubscribe = collectionRef.onSnapshot(snapshot => {
-      const items = snapshot.docs.map(doc => ({
-        productName: doc.data().productName,
-        productDescription: doc.data().productDescription,
-        productPrice: doc.data().productPrice,
-        productDiscount: doc.data().productDiscount,
-        productImageUrl: doc.data().productImageUrl,
-        productID: doc.data().productID,
-        productGST: doc.data().productGST,
-        productSelling: doc.data().productSelling,
-        productCode: doc.data().productCode,  
-        productSeller: doc.data().productSeller,
-        productCatagory: doc.data().productCatagory,
-        productSubCatagory: doc.data().productSubCatagory,
-        ListImageUrl: doc.data().productListImageUrl,
-        productNameHindi: doc.data().productNameHindi,
-        productForDelivery: doc.data().forDelivery,
-        productStatus: doc.data().productStatus
-
-
-      }));
-      // setData([]);
-      // console.log(searchQuerry +" "+ items)
-      setData(items);
-      setIsLoading(false);
-    });
+    setData(allProducts);
+    setIsLoading(false)
 
   }
 
@@ -345,70 +291,43 @@ export default function Home({navigation, route}) {
 
   async function searchCategory(query) {
     setIsLoading(true);
-    query = query.replace(/ /g, '')
-
+    
     if(query != ''){
      
     
-    const collectionRef = firestore().collection('products');
-    const snapshot = await collectionRef
-      .where('productCatagory', '>=', query)
-      .where('productCatagory', '<=', query + '\uf8ff')
-      .get();
-    const items = snapshot.docs.map(doc => ({
-      productName: doc.data().productName,
-      productDescription: doc.data().productDescription,
-      productPrice: doc.data().productPrice,
-      productDiscount: doc.data().productDiscount,
-      productImageUrl: doc.data().productImageUrl,
-      productID: doc.data().productID,
-      productSelling: doc.data().productSelling,
-      productCode: doc.data().productCode,
-      productGST: doc.data().productGST,
-      productSeller: doc.data().productSeller,
-      ListImageUrl: doc.data().productListImageUrl,
-      productCatagory: doc.data().productCatagory,
-      productSubCatagory: doc.data().productSubCatagory,
-      productNameHindi: doc.data().productNameHindi,
-      productForDelivery: doc.data().forDelivery,
-      productStatus: doc.data().productStatus
+    const filtered = allProducts.filter(item =>{
+      
+      var lowerProductName = item.productCatagory;
+     
+      var productNameMatch = lowerProductName==(query);
+      return productNameMatch;
+
+    })
+
+    if(filtered.length == 0){
+      showAlert("No Products" , "No Currently Available Products");
+    }
 
 
-    }));
-    // setData([]);
+
     setIsLoading(false);
-    setData(items); 
-    // ToastAndroid.show(query, ToastAndroid.SHORT);
+    setData(filtered); 
+
   }
   else{
-    // const collectionRef = firestore().collection('products');
-
-    const unsubscribe = collectionRef.onSnapshot(snapshot => {
-      const items = snapshot.docs.map(doc => ({
-        productName: doc.data().productName,
-        productDescription: doc.data().productDescription,
-        productPrice: doc.data().productPrice,
-        productDiscount: doc.data().productDiscount,
-        productImageUrl: doc.data().productImageUrl,
-        productID: doc.data().productID,
-        productGST: doc.data().productGST,
-        productSelling: doc.data().productSelling,
-        productCode: doc.data().productCode,  
-        productSeller: doc.data().productSeller,
-        productCatagory: doc.data().productCatagory,
-        productSubCatagory: doc.data().productSubCatagory,
-        ListImageUrl: doc.data().productListImageUrl,
-        productNameHindi: doc.data().productNameHindi,
-        productForDelivery: doc.data().forDelivery,
-        productStatus: doc.data().productStatus
 
 
-      }));
-      // setData([]);
-      // console.log(searchQuerry +" "+ items)
-      setData(items);
-      setIsLoading(false);
-    });
+    const filter = [
+
+      Category_data[0].search,Category_data[1].search,Category_data[2].search,Category_data[3].search,Category_data[4].search,
+      Category_data[5].search,
+
+    ];
+
+    const filtered = allProducts.filter(doc => filter.includes(doc.productCatagory));
+
+    setData(filtered);
+    setIsLoading(false);
   }
   
 
@@ -423,7 +342,7 @@ const onSaved = ()=>{
   const renderItem = ({ item }) => (
     <View
       style={{
-        margin: 2,
+        margin: 10,
         height: 140,
         width: 70,
         justifyContent: 'center',
@@ -474,10 +393,12 @@ const onSaved = ()=>{
   );
 
   const Toolbar = () => {
-    const image1 = { uri: require('../../assets/list.png'), text: 'Help' };
+    const image1 = { uri: require('../../assets/list.png'), text: 'Index' };
     const image2 = { uri: require('../../assets/coupon.png'), text: 'Voucher' };
     const image3 = { uri: require('../../assets/wallet.png'), text: 'Wallet' };
-    const image4 = { uri: require('../../assets/bookmark.png'), text: 'Wish List' };
+    const image4 = { uri: require('../../assets/wishlist.png'), text: 'Wish List' };
+   
+
   
     return (
       <View style={styles.container}>
@@ -492,6 +413,11 @@ const onSaved = ()=>{
         <View key={image3.text} style={styles.imageContainer}>
           <Image source={image3.uri} style={styles.image} />
           <Text style={styles.text}>{image3.text}</Text>
+        </View>
+
+        <View key={image3.text} style={styles.imageContainer}>
+          <Image source={require('../../assets/filter.png')} style={styles.image} />
+          <Text style={styles.text}>Filter</Text>
         </View>
 
         <TouchableOpacity onPress={onSaved} >
@@ -658,10 +584,13 @@ const onSaved = ()=>{
           <Image source={require('../../assets/search.png')} style={{width: 30, height: 30, margin: 15,tintColor:'black', alignSelf:'center',justifyContent:'center', alignItems:'center'}}>
           </Image>
           </TouchableOpacity>
-
           </View>
 
-          <Text style={{top:-45, marginStart:10, fontSize:18,fontWeight:'900',color:'red'}}>Select Category:</Text>
+          
+
+          
+
+          <Text style={{top:-45, marginStart:10, fontSize:18,fontWeight:'900',color:'red'}}>Select Your Category:</Text>
 
 
         <FlatList
@@ -673,6 +602,8 @@ const onSaved = ()=>{
               
               renderItem={renderItem}
             />
+
+
 
         <FlatList
           style={{
@@ -718,3 +649,5 @@ const onSaved = ()=>{
     </View>
   );
 }
+
+export {Category_data};

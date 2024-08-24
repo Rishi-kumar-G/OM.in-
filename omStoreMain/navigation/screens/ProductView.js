@@ -1,5 +1,5 @@
 import React , {useEffect,useState} from 'react'
-import {View, Text, ToastAndroid,ScrollView,BackHandler, TouchableOpacity ,ImageBackground, StyleSheet, Image} from 'react-native'
+import {View, Text, ToastAndroid,ScrollView,BackHandler, TouchableOpacity ,ImageBackground, StyleSheet, Image, TextInput} from 'react-native'
 // import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
@@ -20,6 +20,7 @@ const [userEmail , setUserEmail] = useState('');
     const [isSpinnerVisible, setisSpinnerVisible] = useState(false);
     const [isModalVisible, setisModalVisible] = useState(false);
     const [index, setindex] = useState(0);
+    const [note,setNote] = useState("");
 
     const [Images, setimages] = useState([
         productUrl, ListImageURL
@@ -33,7 +34,9 @@ const [userEmail , setUserEmail] = useState('');
 
       
 
-   
+    if(productStatus == "" || productStatus == null){
+        productStatus = "Available";
+    }
 
 
 
@@ -82,6 +85,10 @@ const [userEmail , setUserEmail] = useState('');
       
   const uploadProductDetails = async () => {
 
+    if(ListImageURL==null || ListImageURL == ""){
+        ListImageURL = "";
+    }
+    
       setisSpinnerVisible(true)
       const sellingPrice = (parseInt(productPrice) + (parseInt(productGST)/100)*parseInt(productPrice) ) - parseInt(productDiscount);
       const usersCollection = firestore().collection('users').doc(auth().currentUser.email).collection("fav").doc(productID);
@@ -112,25 +119,20 @@ const [userEmail , setUserEmail] = useState('');
 
         setisSpinnerVisible(true);
         // setUserEmail(auth().currentUser.email);
-
+        
+        
         firestore().collection('cart').doc(auth().currentUser.email).collection('products').doc(productID).set({
+            productID: productID,
             productName: productName,
             productDescription: productDescription,
             productPrice: productPrice,
             productDiscount: productDiscount,
-            productImageUrl: productUrl,
-            productID: productID,
-            productGST: productGST,
+            productUrl: productUrl,
+            listImageUri: ListImageURL,
             productSelling: productSelling,
-            productCode: productCode,  
-            productSeller: productSeller,
-            productCatagory: productCatagory,
-            productSubCatagory: productSubCatagory,
-            ListImageUrl: productListImageUrl,
-            productNameHindi: productNameHindi,
-            productForDelivery: forDelivery,
-            productStatus: productStatus
-
+            productCode: productCode,
+            productGST: productGST,
+            productCount: productCount,
             
         }).then(() => {
     
@@ -194,6 +196,7 @@ const [userEmail , setUserEmail] = useState('');
         <Text style={{color:'pink',fontSize:20, fontWeight:900,alignSelf:'center' }} >+Add To WishList</Text>
         </TouchableOpacity>
 
+        <Text style={[style.productDescription,{textAlign:'right' , top:90,color:'blue',fontWeight:'bold'}]}>{productStatus}</Text>
         <View style={{flexDirection:'row'}}>
 
         <Text style={style.productTitle}>{productName}</Text>
@@ -201,12 +204,13 @@ const [userEmail , setUserEmail] = useState('');
 
         <Text style={style.productDiscount}>-{productDiscount}₹ off</Text>
         </View>
+        
         <Text style={style.productTitle}>{productNameHindi}</Text>
 
         <Text style={style.productTitle}>{productCode}</Text>
         <Text style={style.productDescription}>{productCatagory} , {productSubCatagory}</Text>
 
-        <Text style={style.productDescription}>{productStatus}</Text>
+        
 
 
         <Text style={style.productDescription}>by:{productSeller}</Text>
@@ -221,6 +225,8 @@ const [userEmail , setUserEmail] = useState('');
 
 
     </ScrollView>
+
+  
 
     <Text style={{color:'grey',backgroundColor:'white', textAlign:'right', paddingEnd:15}} >{productCount}X{productSelling}={parseInt(productSelling)*parseInt(productCount) }</Text>
     <View style={{ width:'95%',backgroundColor:'white' ,alignSelf:'baseline', height:60, flexDirection:'row',margin:5 ,paddingBottom:15}}>

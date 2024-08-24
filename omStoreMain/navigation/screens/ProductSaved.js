@@ -4,7 +4,7 @@ import {Text, View,StyleSheet, ImageBackground, FlatList, TextInput, Image, Touc
 import firestore from '@react-native-firebase/firestore';
 import ItemCard from './ItemCard';
 import Spinner from 'react-native-loading-spinner-overlay';
-
+import ItemCardSaved from './ItemCardSaved';
 import ItemDaily from './ItemDaily';
 import { firebase } from '@react-native-firebase/storage';
 
@@ -15,6 +15,11 @@ export default function ProductSaved({navigation, route}) {
   const [isLoading, setIsLoading] = useState(false);
   const [ImagesData, setImagesData] = useState([]);
   const [isLoadingImages, setIsLoadingImages] = useState(true);
+
+  useEffect(() => {
+  ToastAndroid.show('Long Press To Remove Product From Wishlist', ToastAndroid.SHORT);
+
+  }, []);
 
   
   useEffect(() => {
@@ -137,7 +142,7 @@ export default function ProductSaved({navigation, route}) {
 
       <ScrollView>
         
-        <Text style={{fontSize:20,alignSelf:'center',padding:10,color:'red',fontWeight:'900'}} >Saved Products</Text>
+        <Text style={{fontSize:20,alignSelf:'center',padding:10,color:'red',fontWeight:'900'}} >Wishlist Products</Text>
 
         <FlatList
           style={{
@@ -156,7 +161,7 @@ export default function ProductSaved({navigation, route}) {
           data={data}
           keyExtractor={item => item.productID}
           renderItem={({item}) => (
-            <ItemCard
+            <ItemCardSaved
               productName={item.productName}
               productID={item.productID}
               productPrice={item.productPrice}

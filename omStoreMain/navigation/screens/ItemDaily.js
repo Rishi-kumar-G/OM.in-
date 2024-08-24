@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet,TouchableOpacity} from 'react-native';
+import { Category_data } from './Home';
 
-
-const ItemDaily = ({productName, productForDelivery,productNameHindi,productCatagory, productSubCatagory,productCode,productSeller, productGST, productSelling, productDescription, productUrl, productPrice,  productDiscount, productID,ListImageURL, navigation}) => {
+const ItemDaily = ({productName,productStatus, productForDelivery,productNameHindi,productCatagory, productSubCatagory,productCode,productSeller, productGST, productSelling, productDescription, productUrl, productPrice,  productDiscount, productID,ListImageURL, navigation}) => {
 
   
   const onitemClick = () => {
@@ -19,6 +19,14 @@ const ItemDaily = ({productName, productForDelivery,productNameHindi,productCata
       });
     }
 
+    let catagory = "";
+
+    Category_data.filter((item)=>{
+      if(item.search == productCatagory){
+        catagory = item.category;
+      }
+    })
+
 
 
     navigation.navigate("ProductView",  {productID: productID, 
@@ -32,11 +40,12 @@ const ItemDaily = ({productName, productForDelivery,productNameHindi,productCata
                                         productSelling: productSelling,
                                         ListImageURL: ListImageURL,
                                         productSeller: productSeller,
-                                        productCatagory: productCatagory,
+                                        productCatagory: catagory,
                                         productSubCatagory: productSubCatagory,
                                         productNameHindi: productNameHindi,
                                         productForDelivery: productForDelivery,
-                                        images: images,})
+                                        images: images,
+                                        productStatus:productStatus})
     
     
   }

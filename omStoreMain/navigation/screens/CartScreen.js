@@ -12,6 +12,7 @@ import {
   ScrollView,
   TextInput,
   BackHandler,
+  Alert,
 } from 'react-native';
 import { CameraRoll } from "@react-native-camera-roll/camera-roll";
 import RNFS from 'react-native-fs';
@@ -24,7 +25,6 @@ import Spinner from 'react-native-loading-spinner-overlay';
 import RNFetchBlob from 'rn-fetch-blob';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import auth from '@react-native-firebase/auth';
-
 // import { PermissionsAndroid,Platform } from 'react-native';
 
 
@@ -89,12 +89,24 @@ export default function CartScreen({ navigation, route }) {
   const [AllItems, setAllItems] = useState('');
   const [forBill, setForBill] = useState('');
   const [loddingText, setLoaddingText] = useState('Please Wait...');
+  const [note,steNote] = useState("");
+  const [isAddressVisible, setisAddressVisible] = useState(false);
+  const [LocalityModal, setLocalityModalVisible] = useState(false);
+  const [AddressToUpdate, setAddressToUpdate] = useState('');
+  const [localityData, setLocalityData] = useState([]);
+
+
   var allItemString = '';
 
   const [qrCode1, setQrCode1] = useState('');
   const [qrCode2, setQrCode2] = useState('');
   const [qrCode3, setQrCode3] = useState('');
 
+  const {newPostValue} = route.params ? route.params : 0;
+
+  if(newPostValue){
+    setDeliveryCharge(newPostValue);
+  }
   //1 --> List Empty
   //0 --> List Not Empty
 
@@ -127,6 +139,63 @@ export default function CartScreen({ navigation, route }) {
 
 }
 
+React.useEffect(() => {
+  const unsubscribe = navigation.addListener('focus', () => {
+
+    setisSpinnerVisible(true);
+
+    firestore().collection('users').doc(auth().currentUser.email).get().then(doc => {
+      if (doc.exists) {
+        setPostOffice(doc.data().postOffice);
+        setRefferalCode(doc.data().refferal);
+        
+    
+        if(doc.data().postOffice == null || doc.data().postOffice == ''){
+          setisSpinnerVisible(false);
+          showAlert('Post Office Not Set','Please Set Post Office in Profile');
+          return;
+        }
+        // ToastAndroid.show('2',ToastAndroid.SHORT);
+    
+        firestore().collection('data').doc(doc.data().postOffice).get().then(doc => {
+          if (doc.exists) {
+      // ToastAndroid.show('3',ToastAndroid.SHORT);
+    
+            setDeliveryCharge(doc.data().postValue);
+            setisSpinnerVisible(false);
+            if(doc.data().postValue == null || doc.data().postValue == ''){
+             
+              setisSpinnerVisible(false);
+              navigation.navigate('Profile');
+            }
+            setisSpinnerVisible(false);
+          } else {
+            navigation.navigate('Profile');
+    
+            console.log('No such document! in post ');
+            setisSpinnerVisible(false);
+    
+          }
+        })
+    
+      } else {
+        // doc.data() will be undefined in this case
+        console.log('No such document! in user');
+        setisSpinnerVisible(false);
+      }
+    })
+
+
+
+  });
+
+  // Return the function to unsubscribe from the event so it gets removed on unmount
+  return unsubscribe;
+}, [navigation]);
+
+
+
+
 useEffect(() => {
   const backHandlerSubscription = BackHandler.addEventListener(
     'hardwareBackPress',
@@ -144,6 +213,22 @@ useEffect(() => {
 
   return () => backHandlerSubscription.remove();
 }, [navigation]);
+
+
+const showAlert = (title, message) => {
+  Alert.alert(
+    title,
+    message,
+     [{ text: 'OK', onPress: () => navigation.navigate('Profile')}],
+    { cancelable: true },
+  );
+
+
+};  
+
+
+
+
 
 
 
@@ -164,33 +249,7 @@ useEffect(() => {
         .doc(contents)
         .collection('products');
 
-        firestore().collection('users').doc(auth().currentUser.email).get().then(doc => {
-          if (doc.exists) {
-            setPostOffice(doc.data().postOffice);
-            setRefferalCode(doc.data().refferal);
-      
-            // ToastAndroid.show('2',ToastAndroid.SHORT);
-      
-            firestore().collection('data').doc(doc.data().postOffice).get().then(doc => {
-              if (doc.exists) {
-          // ToastAndroid.show('3',ToastAndroid.SHORT);
-      
-                setDeliveryCharge(doc.data().postValue);
-                setisSpinnerVisible(false);
-              } else {
-                // doc.data() will be undefined in this case
-                console.log('No such document! in post ');
-                setisSpinnerVisible(false);
-      
-              }
-            })
-      
-          } else {
-            // doc.data() will be undefined in this case
-            console.log('No such document! in user');
-            setisSpinnerVisible(false);
-          }
-        })
+        
 
       const unsubscribe = collectionRef.onSnapshot(snapshot => {
         const items = snapshot.docs.map(doc => ({
@@ -428,6 +487,7 @@ useEffect(() => {
                     orderDiscount: TotalDiscount,
                     orderCost: TotalCost,
                     orderRefferal: RefferalCode,
+                    note:note,
 
 
                   })
@@ -447,6 +507,8 @@ useEffect(() => {
                           if (index == data.length - 1) {
                             // ToastAndroid.show('Cart Cleared', ToastAndroid.SHORT);
                             ToastAndroid.show('Order Placed', ToastAndroid.SHORT);
+                            // createPDF(string, orderID);
+
                             setIsModalVisible(false);
                             setisSpinnerVisible(false);
                           }
@@ -457,7 +519,6 @@ useEffect(() => {
                         );
                     }
 
-                    createPDF(string, orderID);
 
                   });
 
@@ -483,7 +544,7 @@ useEffect(() => {
     let options = {
       html: str,
       fileName: String(orderID),
-      directory: "",
+      directory: "Documents",
     };
 
     //in node_modules/react-native-html-to-pdf/android/src/main/java/com/rnhtmltopdf/RNHTMLtoPDFModule.java
@@ -576,12 +637,68 @@ useEffect(() => {
 
   };
 
+  useEffect(() => {
+    // Reference to your Firestore collection
+    const collectionRef = firestore().collection('data');
+
+    const unsubscribe = collectionRef.onSnapshot(snapshot => {
+      const items = snapshot.docs.map(doc => ({
+        postName: doc.data().postName,
+        postValue: doc.data().postValue,
+       
+      }));
+      setLocalityData(items);
+
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+
+  const updateFirestore = async () => {
+    ToastAndroid.show('updating...', ToastAndroid.SHORT);
+    try {
+      // Reference to your Firestore collection
+      const collectionRef = firestore().collection('users');
+      
+      // Update the document in the collection
+      await collectionRef.doc(userEmail).update({
+        address: AddressToUpdate,
+        postOffice:Locality,
+      }).then(() => {
+        ToastAndroid.show('updated successfully', ToastAndroid.SHORT);
+        // navigation.navigate('Cart',{newPostValue:newPostValue});
+       
+        
+        // setuserAddress(AddressToUpdate);
+        setisAddressVisible(false);
+        }).error((error)=>{
+          console.error('Error updating ', error.message);
+          ToastAndroid.show('Error updating', ToastAndroid.SHORT);
+          });
+
+      
+
+    } catch (error) {
+      console.error('Error updating document: ', error);
+      ToastAndroid.show('Error updating document', ToastAndroid.SHORT);
+    }
+  };
+
+  
+  const renderItem = ({ item }) => (
+    <View style={{margin:5,  justifyContent:'center', alignItems:'center', borderWidth:0.5,borderRadius:5}}>
+     <Text style={{color:'#514A9D', fontSize:20}} onPress={()=>{setDeliveryCharge(item.postValue)}}>{item.postName}</Text>
+
+    </View>
+  );
 
 
   return (
     <>
-      <Spinner onBackButtonPress={()=>setisSpinnerVisible(false)} visible={isSpinnerVisible} textContent={loddingText} textStyle={{ color: 'white' }} />
-
+      <Spinner style={{height:'80%'}} onBackButtonPress={()=>setisSpinnerVisible(false)} visible={isSpinnerVisible} textContent={loddingText} textStyle={{ color: 'white' }} />
 
 
 
@@ -632,9 +749,7 @@ useEffect(() => {
 
 
             <ImageBackground resizeMode='contain' style={{ height: 200, width: '100%', alignSelf: 'center' }}
-              source={{ uri: qrCode3 }}
-
-            >
+              source={{ uri: qrCode3 }}>
               <TouchableOpacity onPress={() => saveToGallery(qrCode3)} style={{ height: 200, width: '100%' }}></TouchableOpacity>
 
 
@@ -700,18 +815,18 @@ useEffect(() => {
           <View
             style={{
               width: '100%',
-              height: 150,
+              height: 50,
               marginTop: 100,
               flexDirection: 'row',
               justifyContent: 'center',
               alignItems: 'center',
             }}>
             <View style={{ width: '50%' }}>
-              <Text style={{ fontSize: 50, fontWeight: '800', color: '#e74c3c' }}>
+              <Text style={{ fontSize: 45, fontWeight: '800', color: '#e74c3c' }}>
                 {' '}
                 Your
               </Text>
-              <Text style={{ fontSize: 45, fontWeight: '600', color: '#e74c3c' }}>
+              <Text style={{ fontSize: 40, fontWeight: '600', color: '#e74c3c' }}>
                 {' '}
                 Cart
               </Text>
@@ -751,7 +866,7 @@ useEffect(() => {
                               
                             >Enter Refferal Code</Text>
 
-              <TextInput style={{ top: -55,paddingStart:10,marginStart:10, borderColor: 'grey', fontSize: 10, color: 'grey' }}
+              <TextInput maxLength={11} style={{ top: -55,paddingStart:10,marginStart:10, borderColor: 'grey', fontSize: 10, color: 'grey' }}
                 placeholder=""
                 onChangeText={text => setRefferalCode(text)}
                 
@@ -785,6 +900,30 @@ useEffect(() => {
               />
             )}
           />
+
+          <TouchableOpacity onPress={()=>navigation.navigate("Profile")}>
+            <Text style={{color:'blue',textAlign:'center',textDecorationLine:'underline'}}>Edit your Address</Text>
+          </TouchableOpacity>
+
+
+<TextInput
+        style={{backgroundColor: 'lightgrey',
+            color: 'grey',
+            borderRadius: 8,
+            borderColor:'grey',
+            borderWidth:0.5,
+            padding: 16,
+            height:50,
+            margin:10,
+            
+            marginBottom: 16,}} 
+        CatagoryValue={note}
+        placeholder='Add Note'
+        placeholderTextColor={"grey"}
+        onChangeText={(text) => steNote(text)}
+      />
+
+
           <View
             style={{ height: 60, backgroundColor: 'white', flexDirection: 'row' }}>
             <View

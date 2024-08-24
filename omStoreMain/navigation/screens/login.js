@@ -25,7 +25,7 @@ const Login = ({navigation}) => {
   // write the file
 
   if (auth().currentUser) {
-    navigation.navigate('Home', email);
+    navigation.replace('Home', email);
     
   }
 
@@ -50,7 +50,15 @@ const Login = ({navigation}) => {
 
   };
 
-  const onLogin = () => {
+  function onLogin(){
+
+    if(email == '' || password == ''){
+      ToastAndroid.show('Please Enter Email and Password', ToastAndroid.SHORT);
+      return;
+    }
+
+    ToastAndroid.show('Logging In', ToastAndroid.SHORT);
+
     auth()
       .signInWithEmailAndPassword(String(email), String(password))
       .then(() => {
@@ -58,11 +66,14 @@ const Login = ({navigation}) => {
           .then(success => {
             console.log('FILE WRITTEN!');
             ToastAndroid.show('Login Successful', ToastAndroid.SHORT);
-        navigation.navigate('Home');
+            navigation.replace('Home');
           })
           .catch(err => {
             console.log(err.message);
-          });
+          }).catch(err => {
+            console.log(err.message);
+          })
+
 
         
       })
@@ -70,6 +81,7 @@ const Login = ({navigation}) => {
         if (error.code === 'auth/invalid-login') {
           ToastAndroid.show('Invalid Email or Password', ToastAndroid.SHORT);
         }
+        console.log(error);
       });
   };
 
@@ -88,8 +100,11 @@ const Login = ({navigation}) => {
             placeholderTextColor={'grey'}
           />
           <TouchableOpacity onPress={ForgotPassword}>
-            <Text style={{color:'black', textAlign:'center', fontSize:20, textDecorationLine:'underline'}}>Submit</Text>
+            <Text style={{color:'blue', textAlign:'center', fontSize:20, textDecorationLine:'underline'}}>Submit</Text>
           </TouchableOpacity>
+          <Text style={{color:'black',marginTop:20, textAlign:'center', fontSize:20}}>Get A Password Reset Link in your email account</Text>
+
+
         </View>
       </Modal>
 
@@ -103,6 +118,8 @@ const Login = ({navigation}) => {
           alignItems: 'center',
         }}>
 
+
+
         <TouchableOpacity
           style={{margin: 20}}
           
@@ -111,6 +128,7 @@ const Login = ({navigation}) => {
           justifyContent="center"
           alignItems="center">
           <Text textDecorationLine="Underline" style={{fontSize:25,color:'white',textDecorationLine:'underline'}} textAlign="center">Create New Account</Text>
+
         </TouchableOpacity>
 
         <Text style={styles.title}>Login</Text>
@@ -152,6 +170,9 @@ const Login = ({navigation}) => {
           alignItems="center">
           <Text textAlign="center" style={{fontSize:20}}>Forgot Password?</Text>
         </TouchableOpacity>
+
+        <Text  style={{fontSize:14,color:'white', textAlign:'center',position:'absolute',bottom:0}} >Helpline No: +91 9026500338</Text>
+
 
 
       </ImageBackground>

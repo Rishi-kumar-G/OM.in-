@@ -55,7 +55,7 @@ const Register = ({navigation}) => {
       .then(success => {
         console.log('User added!');
         ToastAndroid.show('User account created & signed in!', ToastAndroid.SHORT);
-        navigation.navigate('Home');
+        navigation.replace('Home');
 
       })
       .catch(err => {
@@ -187,16 +187,13 @@ useEffect(() => {
             onPress={() => navigation.navigate('Login')} 
             textAlign='center' 
             justifyContent='center' 
+            
             alignItems='center'>
-        <Text textAlign="center" style={{flex:1}} >Already have an account? Login !</Text>
+        <Text textAlign="center" style={{flex:1,fontSize:20}} >Already have an account? Login !</Text>
         </TouchableOpacity>
 
         </View>
-
-        
-
-        
-
+     
         </ScrollView>
     
     </ImageBackground>

@@ -6,6 +6,7 @@ import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import OrderCard from './OrderCard';
 import Modal from 'react-native-modal';
+import RNRestart from 'react-native-restart';
 
 import RNFS from 'react-native-fs';
 
@@ -19,7 +20,7 @@ export default function ProfileScreen({navigation, route}) {
   const [AddressToUpdate, setAddressToUpdate] = useState('');
   const [Locality, setLocality] = useState('');
   const [LocalityModal, setLocalityModalVisible] = useState(false);
-
+  const [newPostValue, setNewPostValue] = useState(0);
   const [isOrders, setisOrders] = useState(0);
   const [isModalVisible, setisModalVisible] = useState(false);
 
@@ -27,6 +28,9 @@ export default function ProfileScreen({navigation, route}) {
   const [localityData, setLocalityData] = useState([]);
 
   const path = RNFS.DocumentDirectoryPath + '/test.txt';
+
+
+  const {fromCart} = route.params ? route.params : false;
 
   useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
@@ -126,15 +130,19 @@ export default function ProfileScreen({navigation, route}) {
     const unsubscribe = collectionRef.onSnapshot(snapshot => {
       const items = snapshot.docs.map(doc => ({
         postName: doc.data().postName,
+        postValue: doc.data().postValue,
        
       }));
       setLocalityData(items);
+
     });
 
     return () => {
       unsubscribe();
     };
   }, []);
+
+
 
 
   
@@ -151,9 +159,9 @@ export default function ProfileScreen({navigation, route}) {
           
             console.log('User signed out!');
             ToastAndroid.show('User signed out!', ToastAndroid.SHORT);
-            throw{};
-            // navigation.navigate('Login');
-            // navigation.navigate('Login');
+            navigation.replace("Login");
+            
+            
           }
           );
 
@@ -175,22 +183,30 @@ export default function ProfileScreen({navigation, route}) {
       await collectionRef.doc(userEmail).update({
         address: AddressToUpdate,
         postOffice:Locality,
-      });
+      }).then(() => {
+        ToastAndroid.show('updated successfully', ToastAndroid.SHORT);
+        
+       
+        
+        setuserAddress(AddressToUpdate);
+        setisModalVisible(false);
+        }).error((error)=>{
+          console.error('Error updating ', error.message);
+          ToastAndroid.show('Error updating', ToastAndroid.SHORT);
+          });
 
       
 
-      ToastAndroid.show('updated successfully', ToastAndroid.SHORT);
-      setuserAddress(AddressToUpdate);
-      setisModalVisible(false);
     } catch (error) {
-      console.error('Error updating ', error.message);
+      // console.error('Error updating document: ', error);
+      // ToastAndroid.show('Error updating document', ToastAndroid.SHORT);
     }
   };
 
+
   const renderItem = ({ item }) => (
     <View style={{margin:5,  justifyContent:'center', alignItems:'center', borderWidth:0.5,borderRadius:5}}>
-     <Text style={{color:'#514A9D', fontSize:20}} onPress={()=>{setLocality(item.postName)
-      setLocalityModalVisible(false)}}>{item.postName}</Text>
+     <Text style={{color:'#514A9D', fontSize:20}} onPress={()=>{setLocality(item.postName);setNewPostValue(item.postValue);setLocalityModalVisible(false)}}>{item.postName}</Text>
 
     </View>
   );
@@ -208,9 +224,10 @@ export default function ProfileScreen({navigation, route}) {
               style={{color:'#514A9D', padding:10, margin:10, borderRadius:15, borderWidth:1, borderColor:'#514A9D'}}
               onChangeText={text => setAddressToUpdate(text)}
             />
+        <TouchableOpacity onPress={()=>setLocalityModalVisible(true)}>
+        <Text style={{fontSize:15, fontWeight:'900',color:'white',padding:10,borderRadius:10,backgroundColor:'#514A9D',margin:20, textAlign:'center'}}>Change Post Office</Text>
+        </TouchableOpacity>
 
-        <Text style={{fontSize:15, fontWeight:'900',color:'#514A9D',margin:20, textAlign:'center'}}>Change Locality</Text>
-        
         <TouchableOpacity style={{width:150, flex:1,justifyContent:'center', alignItems:'center'}}>
               <Text style={{color:'#514A9D', fontSize:18}} onPress={()=>setLocalityModalVisible(true)}>{Locality}</Text>
 
@@ -343,6 +360,14 @@ export default function ProfileScreen({navigation, route}) {
             setAddressToUpdate(userAddress)}}>
 
             <Image source={require('../../assets/edit.png')} style={{width:40,tintColor:'#514A9D' ,height:40, margin:10, alignSelf:'center',padding:20, resizeMode:'contain'}} />
+            <Text style={{fontSize: 12,
+                          fontWeight: '600',
+                          color: 'white',
+                          backgroundColor:'#514A9D',
+                          padding:5,
+                          borderRadius:5,
+                    
+                          letterSpacing: 1,}} >Update Profile</Text>
             </TouchableOpacity>
           </View>
 
