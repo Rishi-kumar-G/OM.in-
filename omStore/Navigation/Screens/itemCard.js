@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ImageBackground,TouchableOpacity} from 'react-n
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 
-const ItemCard = ({productName,productListUrl,productSeller,forDelivery,daily,productHindiName,productCategory,productSubCategory, productDescription, productUrl, productPrice,  productDiscount, productID,productCode, productGST, productSelling, navigation}) => {
+const ItemCard = ({productName,productListUrl,productSeller,forDelivery,daily,productHindiName,productCategory,productSubCategory, productDescription, productUrl, productPrice,  productDiscount, productID,productCode, productGST, productSelling,productStatus, navigation}) => {
 
   
   
@@ -27,7 +27,8 @@ const ItemCard = ({productName,productListUrl,productSeller,forDelivery,daily,pr
                                   productHindiName: productHindiName,
                                 forDelivery: forDelivery,
                                 productSeller: productSeller,
-                                daily: daily,});
+                                daily: daily,
+                                productStatus: productStatus});
     
   }
 

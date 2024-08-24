@@ -8,8 +8,9 @@ import Spinner from 'react-native-loading-spinner-overlay';
 
 export default function MainScreen({navigation}) {
   const [data, setData] = useState([]);
+  const [allProducts,setAllProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchCode, setSearchCode] = useState("");
+
   const [isLoading , setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -36,8 +37,10 @@ export default function MainScreen({navigation}) {
         forDelivery:doc.data().forDelivery,
         productSeller:doc.data().productSeller,
         daily:doc.data().daily,
+        productStatus: doc.data().productStatus
       }));
       setData(items);
+      setAllProducts(items);
     });
 
     return () => {
@@ -48,35 +51,8 @@ export default function MainScreen({navigation}) {
 
   useEffect(() => {
     const backAction = () => {
-     
-
-      const collectionRef = firestore().collection('products');
-
-    collectionRef.onSnapshot((snapshot) => {
-
-      const items = snapshot.docs.map((doc) => ({
-        
-        productName: doc.data().productName,
-        productHindiName: doc.data().productNameHindi,
-        productCategory: doc.data().productCatagory,
-        productSubCategory: doc.data().productSubCatagory,
-        productDescription: doc.data().productDescription,
-        productPrice: doc.data().productPrice,
-        productDiscount: doc.data().productDiscount,
-        productImageUrl: doc.data().productImageUrl,
-        productListImageUrl: doc.data().productListImageUrl,
-
-        productID: doc.data().productID,
-        productGST: doc.data().productGST,
-        productCode: doc.data().productCode,
-        productSelling: doc.data().productSelling,
-        forDelivery:doc.data().forDelivery,
-        productSeller:doc.data().productSeller,
-        daily:doc.data().daily,
-      }));
-      setData(items);
-    });
-
+     setSearchQuery('');
+      setData(allProducts);
 
       return true;
     };
@@ -91,68 +67,31 @@ export default function MainScreen({navigation}) {
 
   
 
-  async function search() {
+  function search() {
     setIsLoading(true);
-    const collectionRef = firestore().collection('products');
-    const snapshot = await collectionRef
-      .where('search', '>=', searchQuery.toLowerCase())
-      .where('search', '<=', searchQuery.toLowerCase() + '\uf8ff')
-      .get();
-    const items = snapshot.docs.map(doc => ({
-       
-      productName: doc.data().productName,
-      productHindiName: doc.data().productNameHindi,
-        productCategory: doc.data().productCatagory,
-        productSubCategory: doc.data().productSubCatagory,
-      productDescription: doc.data().productDescription,
-      productPrice: doc.data().productPrice,
-      productDiscount: doc.data().productDiscount,
-      productImageUrl: doc.data().productImageUrl,
-      productListImageUrl: doc.data().productListImageUrl,
+    
+    try{
+    const items = allProducts.filter((item) => {
 
-      productID: doc.data().productID,
-      productGST: doc.data().productGST,
-      productCode: doc.data().productCode,
-      productSelling: doc.data().productSelling,
-      forDelivery:doc.data().forDelivery,
-      productSeller:doc.data().productSeller,
-      daily:doc.data().daily,
+      if(item.productName === undefined || item.productCategory === undefined || item.productCode === undefined || searchQuery === undefined || searchQuery === '' || item.productName === null || item.productCategory === null || item.productCode === null){
+        return false;
+      }
 
-    }));
+      const name = item.productName.toLowerCase().replace(/\s/g, '');
+      const category = item.productCategory.toLowerCase().replace(/\s/g, '');
+      const code = item.productCode.toLowerCase().replace(/\s/g, '');
+      const search = searchQuery.toLowerCase().replace(/\s/g, '');
+      // console.log(name, category, code, search);
+      return name.includes(search) || category.includes(search) || code.includes(search);
+    });
     setData(items); 
     setIsLoading(false);
+  }catch(e){
+    console.log(e);
+    setIsLoading(false);  
+
   }
-
-  async function searchByCode() {
-    setIsLoading(true);
-    const collectionRef = firestore().collection('products');
-    const snapshot = await collectionRef
-      .where('productCode', '>=', searchCode.toLowerCase())
-      .where('productCode', '<=', searchCode.toLowerCase() + '\uf8ff')
-      .get();
-    const items = snapshot.docs.map(doc => ({
-       
-      productName: doc.data().productName,
-      productHindiName: doc.data().productNameHindi,
-        productCategory: doc.data().productCatagory,
-        productSubCategory: doc.data().productSubCatagory,
-      productDescription: doc.data().productDescription,
-      productPrice: doc.data().productPrice,
-      productDiscount: doc.data().productDiscount,
-      productImageUrl: doc.data().productImageUrl,
-      productListImageUrl: doc.data().productListImageUrl,
-
-      productID: doc.data().productID,
-      productGST: doc.data().productGST,
-      productCode: doc.data().productCode,
-      productSelling: doc.data().productSelling,
-      forDelivery:doc.data().forDelivery,
-      daily:doc.data().daily,
-
-    }));
-    setData(items); 
-    setIsLoading(false);
-  }
+}
 
 
   return (
@@ -176,18 +115,12 @@ export default function MainScreen({navigation}) {
 
 <View style={{flexDirection:'row', justifyContent:'space-between', margin:10}}>
 
-      <TextInput 
-      onChangeText={(text) => setSearchCode(text)}
-      style={{margin:10, borderRadius:20, padding:10,flex:1, backgroundColor:'#a5b1c2'}} placeholder='Search By Code' placeholderTextColor={'grey'}></TextInput>
 
-      <TouchableOpacity onPress={searchByCode} >
-        <Image style={{width:30, height:30, margin:10}} source={require('../../assests/icons/search.png')}></Image>
-      </TouchableOpacity>
 </View>
       <FlatList
         data={data}
         // initialNumToRender={10}
-        
+        style={{marginBottom:100}}
         keyExtractor={(item) => item.productID}
         renderItem={({ item }) => <ItemCard productName={item.productName} 
                                             productID={item.productID}
@@ -205,7 +138,8 @@ export default function MainScreen({navigation}) {
                                             productHindiName={item.productHindiName}
                                             forDelivery={item.forDelivery}
                                             productSeller={item.productSeller}
-                                            daily={item.daily} />}
+                                            daily={item.daily}
+                                            productStatus={item.productStatus} />}
       />
     </View>
   )

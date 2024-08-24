@@ -43,15 +43,24 @@ export default function OrderScreen() {
           ) && (
             querryDate === '' || item.orderDate.includes(querryDate)
           );
-        }).sort((a, b) => {
-            const dateA = new Date(a.orderDate);
-        const dateB = new Date(b.orderDate);
-        return dateA.getTime() - dateB.getTime();
         });
+
+        const sortedItems = filteredAndSortedItems.sort((itemA, itemB) => {
+          // Handle potential cases where orderDate might be null or undefined
+          const dateA = itemA.orderDate || new Date(-Infinity); // Assign an invalid date if missing
+          const dateB = itemB.orderDate || new Date(-Infinity); // Assign an invalid date if missing
+      
+          // Sort dates in descending order
+          return dateA.getTime - dateB.getTime;
+        });
+
+        sortedItems.reverse();
+
+        setData(sortedItems);
 
         
         
-        setData(filteredAndSortedItems);
+        
       });
     
       return () => unsubscribe();

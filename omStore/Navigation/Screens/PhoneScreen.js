@@ -50,16 +50,22 @@ export default function PhoneScreen() {
       }
 
     const onSave = () => {    
+
+      if(phone.length >= 10){
         firestore().collection('phone').doc(phone).set({
           phoneNumber: String(phone),
         }).then(() => {
             setPhone('');
             search('');
             ToastAndroid.show("Phone Number Saved", ToastAndroid.SHORT);
-
+            
           
         });
+      }else{
+        ToastAndroid.show("Phone Number Should be 10 Digits", ToastAndroid.SHORT);
       }
+
+    }
 
       
   const checkPassword = async () => {

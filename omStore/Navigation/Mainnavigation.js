@@ -22,13 +22,20 @@ export default function Mainnavigation() {
     <>
       <NavigationContainer>
         <Tab.Navigator
+
+          screenOptions={{
+            tabBarStyle:{paddingBottom:10},
+          }}
+
           tabBarOptions={{
             hearderShown: false,
             showLabel: false,
+            
+
 
             style: {
-              position: 'absolute',
-              bottom: 35,
+              // position: 'absolute',
+              
               left: 20,
               right: 20,
               elevation: 0,
@@ -160,7 +167,7 @@ export default function Mainnavigation() {
                       color: focused ? '#e32f45' : '#748c94',
                       fontSize: 12,
                     }}>
-                    Orders
+                    Gifts
                   </Text>
                 </View>
               ),

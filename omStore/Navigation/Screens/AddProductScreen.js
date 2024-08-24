@@ -19,12 +19,16 @@ const Catagory = [
   { label: 'General Store', CatagoryValue: 'General Store' },
   { label: 'Kirana', CatagoryValue: 'Kirana' },
   { label: 'Veg Fresh & Fruits', CatagoryValue: 'Veg Fresh & Fruits' },
-  { label: 'Cosmatics', CatagoryValue: '' },
+  { lable: 'Washing Machine Spare',CatagoryValue:'Washing Machine Spare'},
+  { lable: 'Mixi Spare',CatagoryValue:'Mixi Spare'},
+
+  { label: 'Cosmatics', CatagoryValue: 'Cosmatics' },
   { label: 'Garments', CatagoryValue: 'Garments' },
   { label: 'Plastic Product', CatagoryValue: 'Plastic Product' },
   { label: 'Pooja', CatagoryValue: 'Pooja' },
   { label: 'Stationary', CatagoryValue: 'Stationary' },
-  { label: 'Games', CatagoryValue: 'Games' },
+
+
   { label: 'Shoes And Slippers', CatagoryValue: 'Shoes And Slippers' },
   { label: 'Home Care Products', CatagoryValue: 'Home Care Products' },
   { label: 'Mobile Accessories', CatagoryValue: 'Mobile Accessories' },
@@ -36,6 +40,12 @@ const Catagory = [
   { label: 'Food Delivery', CatagoryValue: 'Food Delivery' },
   { label: 'Servie Providers', CatagoryValue: 'Servie Providers' },
   { label: 'Om Carrior', CatagoryValue: 'Om Carrior' },
+  //
+  { label: 'Games & Sports', CatagoryValue: 'Games' },
+  { label: 'Provision & Bakery', CatagoryValue:'Bakery'},
+  { label: 'Washing Machine Spare', CatagoryValue:'Washing Machine Spare'},
+  { label: 'General & Plastic', CatagoryValue: 'Plastic Product' },
+
   
 
 ];
@@ -76,6 +86,12 @@ const forDeleviry = [
   
   { label: 'Free Delivery', SubCatagoryValue: '3' },
   { label: 'Delivery With Your Help', SubCatagoryValue: '3' },
+  { label: 'Urgent Delivery', SubCatagoryValue: '2' },
+  { label: 'Current Delivery', SubCatagoryValue: '2' },
+  { label: 'Next Day Delivery', SubCatagoryValue: '2' },
+  { label: 'Today Delivery', SubCatagoryValue: '2' },
+  { label: 'Next to Next Day Delivery', SubCatagoryValue: '2' },
+
 
   
  
@@ -87,6 +103,7 @@ const productStatus = [
   { label: 'Available', SubCatagoryValue: '1' },
   { label: 'Not Available', SubCatagoryValue: '2' },
   { label: 'Available on Request', SubCatagoryValue: '2' },
+  { label: 'Available on Advance Booking', SubCatagoryValue: '2' },
 
 
 ];

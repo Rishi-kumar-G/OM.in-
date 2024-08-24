@@ -19,8 +19,13 @@ function ProductView({route, navigation}) {
 
   const productCollection = firestore().collection('products');
 
-  const {productID,daily,productListUrl,forDelivery,productSeller, productName,productHindiName,productCategory,productSubCategory, productDescription, productPrice, productDiscount, productUrl, productGST, productCode, productSelling} = route.params;
+  let {productID,productStatus,daily,productListUrl,forDelivery,productSeller, productName,productHindiName,productCategory,productSubCategory, productDescription, productPrice, productDiscount, productUrl, productGST, productCode, productSelling} = route.params;
   const productMRP = parseInt(productPrice) -parseInt(productDiscount);
+
+  if(productStatus==undefined || productStatus==null || productStatus==''){
+    productStatus = "Available";
+    
+  }
   
   const [updateProducName, setUpdateProductName] = useState(productName);
   const [updateProductHindiName , setUpdateProductHindiName] = useState(productHindiName);
@@ -35,10 +40,14 @@ function ProductView({route, navigation}) {
   const [updateProductSeller, setUpdateProductSeller] = useState(productSeller);
   const [updateDaily  , setUpdateDaily] = useState(daily);
   const [updateForDelivery, setUpdateForDelivery] = useState(forDelivery);
+  const [updateProductStatus, setUpdateProductStatus] = useState(productStatus);
 
   const [inputPass, setInputPass] = useState("");
   const [passWordModal , setPassWordModal] = useState(false);
 
+
+ 
+  
 
   const deleteProduct = async (productID) => {
 
@@ -93,7 +102,8 @@ function ProductView({route, navigation}) {
       productSubCatagory: updateProductSubCategory,
       productSeller: updateProductSeller,
       daily: updateDaily,
-      forDelivery: updateForDelivery
+      forDelivery: updateForDelivery,
+      productStatus: updateProductStatus,
     };
     if(updatedFields.daily==undefined){
       updatedFields.daily="0";
@@ -504,8 +514,10 @@ function ProductView({route, navigation}) {
       <TextInput style={{margin:10, fontSize:30, fontWeight:'800',  color:'black', borderWidth:0.5, borderColor:'black', borderRadius:10}}  onChangeText={(text) => setUpdateProductSeller(text)}>{updateProductSeller}</TextInput>
 
       <Text style={{marginLeft:10, fontSize:15, color:'black'}}>Description:</Text>
-
       <TextInput style={{marginLeft:10, fontSize:20, color:'grey', borderWidth:0.5, borderColor:'black', borderRadius:10}}  onChangeText={(text) => setUpdateProductDescription(text)}>{updateProductDescription}</TextInput>
+
+      <Text style={{marginLeft:10, fontSize:15, color:'black'}}>Produst Status:</Text>
+      <TextInput style={{marginLeft:10, fontSize:20, color:'grey', borderWidth:0.5, borderColor:'black', borderRadius:10}}  onChangeText={(text) => setUpdateProductStatus(text)}>{updateProductStatus}</TextInput>
       
       <Text style={{marginLeft:10, fontSize:15, color:'black'}}>Product Code :</Text>
       <TextInput style={{marginLeft:10, fontSize:15, color:'black',borderWidth:0.5, borderColor:'black', borderRadius:10 }} 
