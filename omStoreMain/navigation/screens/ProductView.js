@@ -1,6 +1,16 @@
-import React , {useEffect,useState} from 'react'
-import {View, Text, ToastAndroid,ScrollView,BackHandler, TouchableOpacity ,ImageBackground, StyleSheet, Image, TextInput} from 'react-native'
-// import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  ToastAndroid,
+  ScrollView,
+  BackHandler,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  StatusBar,
+  SafeAreaView,
+} from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import RNFS from 'react-native-fs';
 import { useNavigation } from '@react-navigation/native';
@@ -9,91 +19,92 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import Modal from 'react-native-modal';
 import auth from '@react-native-firebase/auth';
 
-export default function ProductView({route, navigation}) {
 
-    let {productID,images,productNameHindi, productForDelivery,productCatagory,productStatus, productSubCatagory,productName,productSeller ,productCode, productSelling,productDescription, productPrice, productDiscount, productUrl, ListImageURL,productGST} = route.params;
+const { width, height } = Dimensions.get('window');
 
-    const productSP = parseInt(productPrice) - parseInt(productDiscount);
-const [userEmail , setUserEmail] = useState('');
+export default function ProductView({ route, navigation }) {
+  let {
+    productID,
+    images,
+    productNameHindi,
+    productForDelivery,
+    productCatagory,
+    productStatus,
+    productSubCatagory,
+    productName,
+    productSeller,
+    productCode,
+    productSelling,
+    productDescription,
+    productPrice,
+    productDiscount,
+    productUrl,
+    ListImageURL,
+    productGST
+  } = route.params;
 
-    const [productCount, setproductCount] = useState(1);
-    const [isSpinnerVisible, setisSpinnerVisible] = useState(false);
-    const [isModalVisible, setisModalVisible] = useState(false);
-    const [index, setindex] = useState(0);
-    const [note,setNote] = useState("");
+  const [productCount, setProductCount] = useState(1);
+  const [isSpinnerVisible, setIsSpinnerVisible] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
 
-    const [Images, setimages] = useState([
-        productUrl, ListImageURL
-      ]);
+  const [Images, setImages] = useState([productUrl, ListImageURL]);
 
+  // Set default values
+  if (productStatus == "" || productStatus == null) {
+    productStatus = "Available";
+  }
 
+  let gstDisplay;
+  if (productGST == '0' || productGST == 0) {
+    gstDisplay = 'Paid';
+  } else {
+    gstDisplay = String(productGST) + '%';
+  }
 
-      
+  const originalPrice = parseInt(productPrice) + (parseInt(productGST) / 100) * parseInt(productPrice);
+  const sellingPrice = parseInt(productSelling);
+  const totalPrice = sellingPrice * productCount;
 
-      
-
-      
-
-    if(productStatus == "" || productStatus == null){
-        productStatus = "Available";
-    }
-
-
-
-    var path = RNFS.DocumentDirectoryPath + '/test.txt';
-
-    
-    if(productGST == '0' || productGST == 0){
-        productGST = 'Paid';
-    }
-    else{
-        productGST = String(productGST)+'%';
-    }
-   
-
-    useEffect(() => {
-        const backHandlerSubscription = BackHandler.addEventListener(
-          'hardwareBackPress',
-          () => {
-            // Check if you want to handle back button press for this screen
-            if (!navigation.canGoBack()) {
-              // If there's no previous screen, exit the app (optional)
-              return false;
-            }
-    
-            navigation.goBack();
-            return true; // Prevent default navigation handling
-          }
-        );
-    
-        return () => backHandlerSubscription.remove();
-      }, [navigation]);
-    
-
-    console.log(images);
-
-    const onIncrease = ()=>{
-        setproductCount(productCount + 1)
-    }
-
-    const onDecrease = ()=>{
-        if(productCount > 1){
-        setproductCount(productCount - 1)
+  useEffect(() => {
+    const backHandlerSubscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (!navigation.canGoBack()) {
+          return false;
         }
-    }
+        navigation.goBack();
+        return true;
+      }
+    );
 
-      
+    return () => backHandlerSubscription.remove();
+  }, [navigation]);
+
+  const onIncrease = () => {
+    setProductCount(productCount + 1);
+  };
+
+  const onDecrease = () => {
+    if (productCount > 1) {
+      setProductCount(productCount - 1);
+    }
+  };
+
   const uploadProductDetails = async () => {
-
-    if(ListImageURL==null || ListImageURL == ""){
-        ListImageURL = "";
+    if (ListImageURL == null || ListImageURL == "") {
+      ListImageURL = "";
     }
-    
-      setisSpinnerVisible(true)
-      const sellingPrice = (parseInt(productPrice) + (parseInt(productGST)/100)*parseInt(productPrice) ) - parseInt(productDiscount);
-      const usersCollection = firestore().collection('users').doc(auth().currentUser.email).collection("fav").doc(productID);
-      usersCollection.set({
-        
+
+    setIsSpinnerVisible(true);
+    const usersCollection = firestore()
+      .collection('users')
+      .doc(auth().currentUser.email)
+      .collection("fav")
+      .doc(productID);
+
+    usersCollection
+      .set({
         productID: productID,
         productName: productName,
         productDescription: productDescription,
@@ -104,78 +115,72 @@ const [userEmail , setUserEmail] = useState('');
         productSelling: productSelling,
         productCode: productCode,
         productGST: productGST,
-
-
-      }).then(() => {
+      })
+      .then(() => {
         console.log('Product Saved!');
-        setisSpinnerVisible(false)
-  
-        ToastAndroid.show("Product Saved ", ToastAndroid.SHORT);
-
+        setIsSpinnerVisible(false);
+        setIsWishlisted(true);
+        ToastAndroid.show("Added to Wishlist", ToastAndroid.SHORT);
+      })
+      .catch((error) => {
+        setIsSpinnerVisible(false);
+        ToastAndroid.show("Failed to add to wishlist", ToastAndroid.SHORT);
       });
-    }
+  };
 
-    const onAddCart = async ()=>{
+  const onAddCart = async () => {
+    setIsSpinnerVisible(true);
 
-        setisSpinnerVisible(true);
-        // setUserEmail(auth().currentUser.email);
-        
-        
-        firestore().collection('cart').doc(auth().currentUser.email).collection('products').doc(productID).set({
-            productID: productID,
-            productName: productName,
-            productDescription: productDescription,
-            productPrice: productPrice,
-            productDiscount: productDiscount,
-            productUrl: productUrl,
-            listImageUri: ListImageURL,
-            productSelling: productSelling,
-            productCode: productCode,
-            productGST: productGST,
-            productCount: productCount,
-            
-        }).then(() => {
-    
-            setisSpinnerVisible(false);
-          ToastAndroid.show('Added to Cart', ToastAndroid.SHORT);
-          navigation.goBack();
-          
-    
-        }).catch((error) => {
-            console.log(error.message);
-            setisSpinnerVisible(false);
-            ToastAndroid.show('Failed to add. Please try again.', ToastAndroid.SHORT);
+    firestore()
+      .collection('cart')
+      .doc(auth().currentUser.email)
+      .collection('products')
+      .doc(productID)
+      .set({
+        productID: productID,
+        productName: productName,
+        productDescription: productDescription,
+        productPrice: productPrice,
+        productDiscount: productDiscount,
+        productUrl: productUrl,
+        listImageUri: ListImageURL,
+        productSelling: productSelling,
+        productCode: productCode,
+        productGST: productGST,
+        productCount: productCount,
+      })
+      .then(() => {
+        setIsSpinnerVisible(false);
+        ToastAndroid.show('Added to Cart', ToastAndroid.SHORT);
+        navigation.goBack();
+      })
+      .catch((error) => {
+        console.log(error.message);
+        setIsSpinnerVisible(false);
+        ToastAndroid.show('Failed to add. Please try again.', ToastAndroid.SHORT);
+      });
+  };
 
-        });
-        
-
-    }
-  
   return (
-    <>
-    <ScrollView style={{height:'100%', flex:1,backgroundColor:'white'}}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={uploadProductDetails} style={styles.wishlistButton}>
+          <Text style={[styles.wishlistText, { color: isWishlisted ? "#e74c3c" : "#333" }]}>
+            {isWishlisted ? "♥" : "♡"}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-        <Modal 
-        isVisible={isModalVisible}
-        onBackdropPress={() => setisModalVisible(false)}
-        onSwipeComplete={() => setisModalVisible(false)}
-        onBackButtonPress={() => setisModalVisible(false)}
-        swipeDirection="down"
-        style={{justifyContent: 'flex-end', margin: 0,}}
-        >
-        <View style={{backgroundColor:'white', height:'100%', width:'100%', borderRadius:10, padding:10}}>
-            <ImageViewer
-                imageUrls={images}
-                renderIndicator={() => null}
-
-                style={{height: 300, flex:1, }}
-                />
-        </View>
-        </Modal>
-
-        <Spinner visible={isSpinnerVisible} textContent={'Adding ...'} textStyle={{color:'white'}} />
-
-        <ImageViewer
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Image Section */}
+        <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.imageContainer}>
+           <ImageViewer
                         imageUrls={images}
                         renderIndicator={() => null}
                         backgroundColor='white'
@@ -183,125 +188,400 @@ const [userEmail , setUserEmail] = useState('');
 
                         style={{height: 300, flex:1 }}
                         />
-        
-
-        
-
-
-
-        
-        <Text style={{color:'red',padding:5,alignSelf:'center', textAlign:'center'}}>{productForDelivery}</Text>
-
-        <TouchableOpacity onPress={uploadProductDetails} >
-        <Text style={{color:'pink',fontSize:20, fontWeight:900,alignSelf:'center' }} >+Add To WishList</Text>
         </TouchableOpacity>
 
-        <Text style={[style.productDescription,{textAlign:'right' , top:90,color:'blue',fontWeight:'bold'}]}>{productStatus}</Text>
-        <View style={{flexDirection:'row'}}>
+        {/* Product Info Section */}
+        <View style={styles.productInfoContainer}>
+          {/* Delivery Info & Status */}
+          <View style={styles.statusContainer}>
+            {productForDelivery && (
+              <View style={styles.deliveryBadge}>
+                <Text style={styles.deliveryText}>{productForDelivery}</Text>
+              </View>
+            )}
+            <View style={[styles.statusBadge, { backgroundColor: productStatus === 'Available' ? '#e8f5e8' : '#fff3cd' }]}>
+              <Text style={[styles.statusText, { color: productStatus === 'Available' ? '#28a745' : '#856404' }]}>
+                {productStatus}
+              </Text>
+            </View>
+          </View>
 
-        <Text style={style.productTitle}>{productName}</Text>
+          {/* Product Title */}
+          <Text style={styles.productTitle}>{productName}</Text>
+          {productNameHindi && (
+            <Text style={styles.productTitleHindi}>{productNameHindi}</Text>
+          )}
 
+          {/* Category & Code */}
+          <View style={styles.categoryContainer}>
+            <Text style={styles.categoryText}>{productCatagory}</Text>
+            {productSubCatagory && (
+              <>
+                <Text style={styles.categorySeparator}>•</Text>
+                <Text style={styles.categoryText}>{productSubCatagory}</Text>
+              </>
+            )}
+          </View>
+          
+          {productCode && (
+            <Text style={styles.productCode}>Code: {productCode}</Text>
+          )}
 
-        <Text style={style.productDiscount}>-{productDiscount}₹ off</Text>
+          {/* Seller & GST Info */}
+          <View style={styles.sellerContainer}>
+            <Text style={styles.sellerText}>Sold by: {productSeller}</Text>
+            <Text style={styles.gstText}>GST: {gstDisplay}</Text>
+          </View>
+
+          {/* Price Section */}
+          <View style={styles.priceContainer}>
+            <View style={styles.priceRow}>
+              <Text style={styles.sellingPrice}>₹{sellingPrice}</Text>
+              <Text style={styles.originalPrice}>₹{originalPrice}</Text>
+              {productDiscount > 0 && (
+                <View style={styles.discountBadge}>
+                  <Text style={styles.discountText}>₹{productDiscount} OFF</Text>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Description */}
+          {productDescription && (
+            <View style={styles.descriptionContainer}>
+              <Text style={styles.descriptionTitle}>Description</Text>
+              <Text style={styles.descriptionText}>{productDescription}</Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Bottom Action Bar */}
+      <View style={styles.bottomContainer}>
+        <View style={styles.totalContainer}>
+          <Text style={styles.totalText}>
+            {productCount} × ₹{sellingPrice} = ₹{totalPrice}
+          </Text>
         </View>
         
-        <Text style={style.productTitle}>{productNameHindi}</Text>
-
-        <Text style={style.productTitle}>{productCode}</Text>
-        <Text style={style.productDescription}>{productCatagory} , {productSubCatagory}</Text>
-
-        
-
-
-        <Text style={style.productDescription}>by:{productSeller}</Text>
-        <Text style={style.productDescription}>GST: {productGST}</Text>
-
-        <Text style={style.productDescription}>{productDescription}</Text>
-
-        <Text style={{ textDecorationLine:'line-through', margin:10, color:'black', fontSize:20}} >₹{parseInt(productPrice) + (parseInt(productGST)/100*parseInt(productPrice)) }</Text>
-        <Text style={{ margin:10, color:'green', fontSize:25}} >₹{productSelling} only</Text>
-
-        
-
-
-    </ScrollView>
-
-  
-
-    <Text style={{color:'grey',backgroundColor:'white', textAlign:'right', paddingEnd:15}} >{productCount}X{productSelling}={parseInt(productSelling)*parseInt(productCount) }</Text>
-    <View style={{ width:'95%',backgroundColor:'white' ,alignSelf:'baseline', height:60, flexDirection:'row',margin:5 ,paddingBottom:15}}>
-    
-    <View style={{width:'50%',backgroundColor:'white' ,alignContent:'center',alignItems:'center' ,justifyContent:"center"}}>
-
-        <View style={{flexDirection:'row',backgroundColor:'white', marginTop:10}}>
-            <TouchableOpacity onPress={onDecrease}>
-                <Text style={{color:'black', fontSize:30}}>-</Text>
+        <View style={styles.actionContainer}>
+          {/* Quantity Selector */}
+          <View style={styles.quantityContainer}>
+            <TouchableOpacity onPress={onDecrease} style={styles.quantityButton}>
+              <Text style={styles.quantityButtonText}>−</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity>
-                <Text style={{color:'black', fontSize:30, marginStart:10, marginEnd:10}}>{productCount}</Text>
+            <Text style={styles.quantityText}>{productCount}</Text>
+            <TouchableOpacity onPress={onIncrease} style={styles.quantityButton}>
+              <Text style={styles.quantityButtonText}>+</Text>
             </TouchableOpacity>
+          </View>
 
-            <TouchableOpacity onPress={onIncrease}>
-                <Text style={{color:'black', fontSize:30}}>+</Text>
-            </TouchableOpacity>
-
-
-
+          {/* Add to Cart Button */}
+          <TouchableOpacity onPress={onAddCart} style={styles.addToCartButton}>
+            <Text style={styles.addToCartText}>🛒 Add to Cart</Text>
+          </TouchableOpacity>
         </View>
+      </View>
 
-    </View>
+      {/* Image Modal */}
+      <Modal
+        isVisible={isModalVisible}
+        onBackdropPress={() => setIsModalVisible(false)}
+        onSwipeComplete={() => setIsModalVisible(false)}
+        onBackButtonPress={() => setIsModalVisible(false)}
+        swipeDirection="down"
+        style={styles.modal}
+      >
+        <View style={styles.modalContent}>
+          <TouchableOpacity 
+            onPress={() => setIsModalVisible(false)} 
+            style={styles.modalCloseButton}
+          >
+            <Text style={styles.modalCloseText}>×</Text>
+          </TouchableOpacity>
+          <ImageViewer
+            imageUrls={Images}
+            renderIndicator={() => null}
+            style={styles.modalImage}
+          />
+        </View>
+      </Modal>
 
-    <View style={{width:'50%' }}>
-
-        <TouchableOpacity onPress={onAddCart} style={{backgroundColor:'red',borderRadius:15 ,width:'100%', height:'100%', margin:5, padding:5, alignItems:'center',alignContent:'center' ,justifyContent:'center'}}>
-            <Text style={{fontSize:15,padding:10 ,flex:1,color:'white',width:'100%',fontWeight:'600',textAlign:'center',justifyContent:'center', alignSelf:'center',height:'100%'}}>+Add</Text>
-        </TouchableOpacity>
-
-
-    </View>
-    
-</View>
-</>
-  )
+      <Spinner 
+        visible={isSpinnerVisible} 
+        textContent={'Processing...'} 
+        textStyle={styles.spinnerText} 
+      />
+    </SafeAreaView>
+  );
 }
 
-const style = StyleSheet.create({
-
-    productTitle:{
-        flex:1,
-
-        fontSize:30,
-        flex:1,
-        margin:10,
-        fontWeight:'900',
-        color:'black',
-
-
-
-    },
-
-    productDiscount:{
-        color:'red',
-        fontWeight:'600',
-        margin:10,
-        fontSize:30
-
-    },
-
-    productDescription:{
-
-        margin:10,
-        fontSize:18,
-        
-        color:'grey',
-
-
-    }
-
-
-}
-
-    
-
-)
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  backButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 20,
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  wishlistButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    minWidth: 40,
+    alignItems: 'center',
+  },
+  wishlistText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  imageContainer: {
+    height: 300,
+    backgroundColor: '#f8f9fa',
+  },
+  productImage: {
+    height: 300,
+  },
+  productInfoContainer: {
+    padding: 16,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  deliveryBadge: {
+    backgroundColor: '#fff3cd',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  deliveryText: {
+    color: '#856404',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  productTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+    lineHeight: 30,
+  },
+  productTitleHindi: {
+    fontSize: 18,
+    color: '#666',
+    marginBottom: 12,
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  categoryText: {
+    fontSize: 14,
+    color: '#666',
+    textTransform: 'capitalize',
+  },
+  categorySeparator: {
+    marginHorizontal: 8,
+    color: '#666',
+  },
+  productCode: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+  },
+  sellerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  sellerText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  gstText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  priceContainer: {
+    marginBottom: 20,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sellingPrice: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#28a745',
+    marginRight: 12,
+  },
+  originalPrice: {
+    fontSize: 18,
+    color: '#999',
+    textDecorationLine: 'line-through',
+    marginRight: 12,
+  },
+  discountBadge: {
+    backgroundColor: '#e74c3c',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  discountText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  descriptionContainer: {
+    marginTop: 8,
+  },
+  descriptionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  descriptionText: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+  },
+  bottomContainer: {
+    backgroundColor: '#fff',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    paddingTop: 8,
+  },
+  totalContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  totalText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'right',
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    alignItems: 'center',
+  },
+  quantityContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 25,
+    paddingHorizontal: 4,
+    marginRight: 16,
+    elevation: 1,
+  },
+  quantityButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+  },
+  quantityButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  quantityText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    minWidth: 40,
+    textAlign: 'center',
+  },
+  addToCartButton: {
+    flex: 1,
+    backgroundColor: '#e74c3c',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderRadius: 25,
+    elevation: 2,
+  },
+  addToCartText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modal: {
+    justifyContent: 'flex-end',
+    margin: 0,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    height: '100%',
+    width: '100%',
+    borderRadius: 10,
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1000,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseText: {
+    fontSize: 24,
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  modalImage: {
+    height: '100%',
+    flex: 1,
+  },
+  spinnerText: {
+    color: 'white',
+  },
+});
